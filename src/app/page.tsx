@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Palette, Users, ArrowRight, Sparkles, Brush, Timer, Share2, Trophy, Star, ArrowLeft, LogIn } from 'lucide-react'
+import { Palette, Users, ArrowRight, Sparkles, Brush, Timer, Share2, Trophy, Star, ArrowLeft, LogIn, User } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 export default function HomePage() {
@@ -42,11 +42,80 @@ export default function HomePage() {
     }
   }
 
+  const handleSignIn = async () => {
+    // Simple email magic link for testing
+    const email = prompt('Enter your email (for testing):')
+    if (!email) return
+    
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`
+      }
+    })
+    
+    if (error) {
+      console.error('Sign in error:', error)
+      alert('Error sending magic link. Please try again.')
+    } else {
+      alert('Check your email for the login link!')
+    }
+  }
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    setUser(null)
+    router.push('/')
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-50 via-white to-blue-50">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16 sm:pt-24 sm:pb-20">
+      {/* Fixed Header with Auth */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push('/')}>
+              <Palette className="w-6 h-6 text-pink-500" />
+              <span className="text-lg font-bold text-gray-900">Pass the Brush</span>
+            </div>
+            
+            <div>
+              {user ? (
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center">
+                      <User className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="text-sm text-gray-700 hidden sm:inline">
+                      {user.email?.split('@')[0] || user.user_metadata?.name || 'Guest'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleSignOut}
+                    className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleSignIn}
+                    className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all flex items-center gap-2"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    <span className="hidden sm:inline">Sign In</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section - Adjusted padding for fixed header */}
+      <div className="relative overflow-hidden pt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 sm:pt-12 sm:pb-20">
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-pink-400 to-purple-600 mb-6 animate-bounce">
               <Palette className="w-10 h-10 text-white" />
